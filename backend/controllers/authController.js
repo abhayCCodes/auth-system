@@ -43,10 +43,7 @@ const sendOTP = async (req, res) => {
   }
 };
 
-
-
 // ✅ Define other functions too (as you already did)
-const verifyOTP = async (req, res) => { /* your code */ };
 const registerUser = async (req, res) => { /* your code */ };
 const login = async (req, res) => { /* your code */ };
 const resetPassword = async (req, res) => { /* your code */ };
