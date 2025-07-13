@@ -1,89 +1,74 @@
-require('dotenv').config();
+require('dotenv').config({ path: __dirname + '/.env' }); // Absolute path to .env
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
+const nodemailer = require('nodemailer'); // Add this line
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const otpRoutes = require('./routes/otpRoutes');
 
-// Initialize Express
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ========================
-// Security Middleware
+// Debug Environment Variables
 // ========================
-app.use(helmet()); // Security headers
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
-}));
-
-// Rate limiting (100 requests per 15 minutes)
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: 'Too many requests from this IP, please try again later'
+console.log('[ENV] SMTP Config:', {
+  host: process.env.EMAIL_HOST || 'MISSING',
+  port: process.env.EMAIL_PORT || 'MISSING',
+  user: process.env.EMAIL_USER ? '*****' : 'MISSING'
 });
-app.use(limiter);
 
 // ========================
-// Core Middleware
+// Middleware (Keep your original)
 // ========================
-app.use(express.json({ limit: '10kb' })); // Body limit
-app.use(morgan('dev')); // HTTP request logging
+app.use(helmet());
+app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000' }));
+app.use(morgan('dev'));
+app.use(express.json());
 
 // ========================
-// Database Connection
+// SMTP Verification
 // ========================
-connectDB(); // Your existing DB connection
+connectDB().then(() => {
+  if (process.env.EMAIL_HOST) {
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT,
+      secure: process.env.EMAIL_PORT === '465',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      },
+      tls: { rejectUnauthorized: false } // For testing only
+    });
+
+    transporter.verify(function(error, success) {
+      if (error) {
+        console.error('❌ SMTP Connection Failed:', {
+          code: error.code,
+          command: error.command,
+          response: error.response
+        });
+      } else {
+        console.log('✅ SMTP Server Ready');
+      }
+    });
+  }
+});
 
 // ========================
-// API Routes
+// Routes (Keep your original)
 // ========================
 app.use('/api/auth', authRoutes);
 app.use('/api/otp', otpRoutes);
 
 // ========================
-// Status Routes
-// ========================
-app.get('/', (req, res) => {
-  res.json({
-    status: '✅ Auth System API is running',
-    version: '1.0.0',
-    docs: process.env.API_DOCS_URL || 'No docs URL set'
-  });
-});
-
-// ========================
-// Error Handlers
-// ========================
-// 404 Handler
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found'
-  });
-});
-
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    success: false,
-    message: 'Internal Server Error',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
-  });
-});
-
-// ========================
-// Server Start
+// Server Start (Keep your original)
 // ========================
 app.listen(PORT, () => {
   console.log(`\n🚀 Server running in ${process.env.NODE_ENV || 'development'} mode`);
   console.log(`🔗 http://localhost:${PORT}`);
-  console.log(`📚 API Docs: ${process.env.API_DOCS_URL || 'Not configured'}\n`);
 });

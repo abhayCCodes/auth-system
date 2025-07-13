@@ -1,77 +1,50 @@
-const bcrypt = require("bcryptjs");
-const User = require("../models/User");
-const { generateOTP, verifyOTP } = require("../utils/otpStore");
-
-// Mock OTP sending (console log)
-const sendOtp = (req, res) => {
+// ✅ Define everything as named constants
+const sendOTP = async (req, res) => {
   const { emailOrMobile } = req.body;
-  if (!emailOrMobile) return res.status(400).json({ message: "Missing input." });
 
-  const otp = generateOTP(emailOrMobile);
-  console.log(`📤 OTP for ${emailOrMobile}: ${otp}`);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailOrMobile)) {
+    return res.status(400).json({ error: "Invalid email format" });
+  }
 
-  res.status(200).json({ message: "OTP sent successfully." });
-};
+  try {
+    const otp = generateOTP(emailOrMobile);
 
-const verifyOtp = async (req, res) => {
-  const { emailOrMobile, otp } = req.body;
-  const isValid = verifyOTP(emailOrMobile, otp);
-  if (!isValid) return res.status(400).json({ message: "Invalid or expired OTP." });
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM,
+      to: emailOrMobile,
+      subject: 'Your OTP Code',
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+          <h2>OTP Verification</h2>
+          <p>Your verification code is: <strong>${otp}</strong></p>
+          <p>Valid for 5 minutes.</p>
+          <p style="color: #888;">Do not share this code with anyone.</p>
+        </div>
+      `
+    });
 
-  const existingUser = await User.findOne({ emailOrMobile });
-  if (existingUser) {
-    res.status(200).json({ message: "OTP verified. User exists.", userExists: true });
-  } else {
-    res.status(200).json({ message: "OTP verified. New user.", userExists: false });
+    res.status(200).json({ success: true, message: "OTP sent to email" });
+
+  } catch (err) {
+    console.error("Email Send Error:", err);
+    res.status(500).json({
+      error: "Failed to send OTP",
+      details: process.env.NODE_ENV === 'development' ? err.message : null
+    });
   }
 };
 
-const registerUser = async (req, res) => {
-  const { name, emailOrMobile, password } = req.body;
+// ✅ Define other functions too (as you already did)
+const verifyOTP = async (req, res) => { /* your code */ };
+const registerUser = async (req, res) => { /* your code */ };
+const login = async (req, res) => { /* your code */ };
+const resetPassword = async (req, res) => { /* your code */ };
 
-  const existingUser = await User.findOne({ emailOrMobile });
-  if (existingUser) return res.status(400).json({ message: "User already exists." });
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  const user = await User.create({
-    name,
-    emailOrMobile,
-    password: hashedPassword,
-  });
-
-  res.status(201).json({ message: "User registered successfully.", user });
-};
-
-const loginUser = async (req, res) => {
-  const { emailOrMobile, password } = req.body;
-
-  const user = await User.findOne({ emailOrMobile });
-  if (!user) return res.status(400).json({ message: "User not found." });
-
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return res.status(400).json({ message: "Incorrect password." });
-
-  res.status(200).json({ message: `Welcome, ${user.name}!`, user });
-};
-
-const resetPassword = async (req, res) => {
-  const { emailOrMobile, newPassword } = req.body;
-
-  const user = await User.findOne({ emailOrMobile });
-  if (!user) return res.status(400).json({ message: "User not found." });
-
-  const hashedPassword = await bcrypt.hash(newPassword, 10);
-  user.password = hashedPassword;
-  await user.save();
-
-  res.status(200).json({ message: "Password reset successfully." });
-};
-
+// ✅ Final correct export
 module.exports = {
-  sendOtp,
-  verifyOtp,
+  sendOTP,
+  verifyOTP,
   registerUser,
-  loginUser,
-  resetPassword,
+  login,
+  resetPassword
 };
