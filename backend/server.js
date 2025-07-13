@@ -12,26 +12,23 @@ const otpRoutes = require('./routes/otpRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ========================
+// ✅ Connect to MongoDB
+connectDB();
+
 // Debug Environment Variables
-// ========================
 console.log('[ENV] SMTP Config:', {
   host: process.env.EMAIL_HOST || 'MISSING',
   port: process.env.EMAIL_PORT || 'MISSING',
   user: process.env.EMAIL_USER ? '*****' : 'MISSING'
 });
 
-// ========================
-// Middleware (Keep your original)
-// ========================
+// Middleware 
 app.use(helmet());
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000' }));
 app.use(morgan('dev'));
 app.use(express.json());
 
-// ========================
 // SMTP Verification
-// ========================
 connectDB().then(() => {
   if (process.env.EMAIL_HOST) {
     const transporter = nodemailer.createTransport({
@@ -59,15 +56,11 @@ connectDB().then(() => {
   }
 });
 
-// ========================
 // Routes (Keep your original)
-// ========================
 app.use('/api/auth', authRoutes);
 app.use('/api/otp', otpRoutes);
 
-// ========================
 // Server Start (Keep your original)
-// ========================
 app.listen(PORT, () => {
   console.log(`\n🚀 Server running in ${process.env.NODE_ENV || 'development'} mode`);
   console.log(`🔗 http://localhost:${PORT}`);
