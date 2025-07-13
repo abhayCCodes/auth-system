@@ -1,3 +1,10 @@
+const getTransporter = require("../utils/mailTransporter");
+const nodemailer = require("nodemailer");
+const bcrypt = require("bcryptjs");
+const User = require("../models/User");
+const { generateOTP, verifyOTP } = require("../utils/otpStore");
+
+
 // ✅ Define everything as named constants
 const sendOTP = async (req, res) => {
   const { emailOrMobile } = req.body;
@@ -8,6 +15,8 @@ const sendOTP = async (req, res) => {
 
   try {
     const otp = generateOTP(emailOrMobile);
+    
+    const transporter = await getTransporter();
 
     await transporter.sendMail({
       from: process.env.EMAIL_FROM,
@@ -33,6 +42,8 @@ const sendOTP = async (req, res) => {
     });
   }
 };
+
+
 
 // ✅ Define other functions too (as you already did)
 const verifyOTP = async (req, res) => { /* your code */ };
