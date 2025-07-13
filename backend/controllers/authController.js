@@ -51,7 +51,6 @@ const resetPassword = async (req, res) => { /* your code */ };
 // ✅ Final correct export
 module.exports = {
   sendOTP,
-  verifyOTP,
   registerUser,
   login,
   resetPassword

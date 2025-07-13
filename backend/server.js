@@ -12,9 +12,6 @@ const otpRoutes = require('./routes/otpRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ Connect to MongoDB
-connectDB();
-
 // Debug Environment Variables
 console.log('[ENV] SMTP Config:', {
   host: process.env.EMAIL_HOST || 'MISSING',
@@ -27,6 +24,10 @@ app.use(helmet());
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000' }));
 app.use(morgan('dev'));
 app.use(express.json());
+
+// Routes (grouped after middlewares)
+app.use("/api/auth", authRoutes);
+app.use("/api/otp", otpRoutes);
 
 // SMTP Verification
 connectDB().then(() => {
@@ -55,10 +56,6 @@ connectDB().then(() => {
     });
   }
 });
-
-// Routes (Keep your original)
-app.use('/api/auth', authRoutes);
-app.use('/api/otp', otpRoutes);
 
 // Server Start (Keep your original)
 app.listen(PORT, () => {
