@@ -23,7 +23,30 @@ console.log('[ENV] SMTP Config:', {
 app.use(helmet());
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5000' }));
 app.use(morgan('dev'));
+
+// ✅ Add fallback middleware to parse raw JSON from tools like PowerShell
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use((req, res, next) => {
+  if (
+    req.headers['content-type'] === 'application/json' &&
+    (typeof req.body === 'undefined' || Object.keys(req.body).length === 0)
+  ) {
+    let rawData = '';
+    req.on('data', chunk => { rawData += chunk });
+    req.on('end', () => {
+      try {
+        req.body = JSON.parse(rawData);
+      } catch (err) {
+        req.body = {};
+      }
+      next();
+    });
+  } else {
+    next();
+  }
+});
+
 
 // Routes (grouped after middlewares)
 app.use("/api/auth", authRoutes);
@@ -62,3 +85,6 @@ app.listen(PORT, () => {
   console.log(`\n🚀 Server running in ${process.env.NODE_ENV || 'development'} mode`);
   console.log(`🔗 http://localhost:${PORT}`);
 });
+
+
+
