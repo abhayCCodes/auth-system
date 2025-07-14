@@ -21,7 +21,11 @@ console.log('[ENV] SMTP Config:', {
 
 // Middleware 
 app.use(helmet());
-app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5000' }));
+app.use(cors({
+  origin: 'https://auth-frontend-psi-livid.vercel.app',
+  credentials: true
+}));
+
 app.use(morgan('dev'));
 
 // ✅ Add fallback middleware to parse raw JSON from tools like PowerShell
