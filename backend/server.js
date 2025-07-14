@@ -21,7 +21,7 @@ console.log('[ENV] SMTP Config:', {
 
 // Middleware 
 app.use(helmet());
-app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000' }));
+app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5000' }));
 app.use(morgan('dev'));
 app.use(express.json());
 
