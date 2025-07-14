@@ -8,6 +8,7 @@ function AuthPage() {
   const [emailOrMobile, setEmailOrMobile] = useState("");
   const navigate = useNavigate();
 
+  const baseURL = process.env.REACT_APP_API_BASE_URL;
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -17,13 +18,15 @@ function AuthPage() {
     }
 
     try {
-      await axios.post("http://auth-backend-a9xg.onrender.com/api/auth/send-otp", {
-        emailOrMobile,
+      await axios.post(`${baseURL}/api/auth/send-otp`, {
+
+        identifier: emailOrMobile, // ✅ important: backend expects 'identifier'
       });
       localStorage.setItem("emailOrMobile", emailOrMobile);
       toast.success("📤 OTP sent successfully!");
       navigate("/otp");
     } catch (err) {
+      console.error("🔴 OTP error:", err.response?.data || err.message); // For debugging
       toast.error("❌ Error sending OTP. Try again.");
     }
   };
