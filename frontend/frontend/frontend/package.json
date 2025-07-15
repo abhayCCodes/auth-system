@@ -15,7 +15,8 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.30.1",
     "react-scripts": "5.0.1",
-    "react-toastify": "^11.0.5"
+    "react-toastify": "^11.0.5",
+    "tar": "^7.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.11",
@@ -35,8 +36,9 @@
       "last 1 safari version"
     ]
   },
+  "main": "postcss.config.js",
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "Frontend for Auth System built using React, Tailwind CSS, Axios, and Toastify."
+  "description": ""
 }
