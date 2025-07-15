@@ -12,6 +12,8 @@ function AuthPage() {
   console.log("✅ REACT_APP_API_BASE_URL:", process.env.REACT_APP_API_BASE_URL);  //onsole Log to Debug
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    console.log("📧 Email before sending OTP:", email);
 
     if (!emailOrMobile.trim()) {
       toast.error("❌ Please enter your Email or Mobile number.");
