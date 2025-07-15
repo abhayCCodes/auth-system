@@ -9,6 +9,7 @@ function AuthPage() {
   const navigate = useNavigate();
 
   const baseURL = process.env.REACT_APP_API_BASE_URL;
+  console.log("✅ REACT_APP_API_BASE_URL:", process.env.REACT_APP_API_BASE_URL);  //onsole Log to Debug
   const handleSubmit = async (e) => {
     e.preventDefault();
 
