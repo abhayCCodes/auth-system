@@ -24,9 +24,10 @@ function AuthPage() {
 
     try {
       await axios.post(`${baseURL}/api/auth/send-otp`, {
-
-        identifier: emailOrMobile, // ✅ important: backend expects 'identifier'
+        email: emailOrMobile.trim(),
       });
+
+    
       localStorage.setItem("emailOrMobile", emailOrMobile);
       toast.success("📤 OTP sent successfully!");
       navigate("/otp");
