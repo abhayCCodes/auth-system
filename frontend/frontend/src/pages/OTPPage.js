@@ -5,26 +5,18 @@ import { toast } from "react-toastify";
 
 function OTPPage() {
   const [otp, setOtp] = useState("");
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const emailOrMobile = localStorage.getItem("emailOrMobile");
 
   const handleVerify = async (e) => {
     e.preventDefault();
-
-    if (!otp.trim()) {
-      toast.error("❌ Please enter the OTP.");
-      return;
-    }
-
-    setLoading(true);
     try {
-      const res = await axios.post("http://auth-backend-a9xg.onrender.com/api/auth/verify-otp", {
+      const res = await axios.post("http://localhost:5000/api/auth/verify-otp", {
         emailOrMobile,
         otp,
       });
 
-      toast.success("✅ OTP verified successfully!");
+      toast.success("✅ OTP Verified!");
 
       if (res.data.userExists) {
         navigate("/login");
@@ -32,35 +24,30 @@ function OTPPage() {
         navigate("/signup");
       }
     } catch (err) {
-      toast.error("❌ Invalid or expired OTP. Please try again.");
-    } finally {
-      setLoading(false);
+      toast.error("❌ Invalid or expired OTP");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+      <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
         <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
-          Verify OTP
+          Enter OTP
         </h2>
         <form onSubmit={handleVerify}>
           <input
             type="text"
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
-            placeholder="Enter OTP"
+            placeholder="Enter 6-digit OTP"
             className="border border-gray-300 rounded-md p-3 w-full mb-4 text-lg focus:outline-none focus:ring-2 focus:ring-green-400"
             required
           />
           <button
             type="submit"
-            disabled={loading}
-            className={`${
-              loading ? "bg-green-300 cursor-not-allowed" : "bg-green-500 hover:bg-green-600"
-            } text-white font-semibold py-3 px-4 rounded-md w-full transition duration-200`}
+            className="bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-md w-full transition duration-200"
           >
-            {loading ? "Verifying..." : "Verify OTP"}
+            Verify OTP
           </button>
         </form>
       </div>
