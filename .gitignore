@@ -1,13 +1,24 @@
+# Node modules
 node_modules/
 **/node_modules/
+
+# Build & dist folders
 build/
 **/build/
-.env
-**/.env
 dist/
 **/dist/
-*.log
+
+# Environment files
+.env
+**/.env
+
+# IDE & editor folders
 .vscode/
 .idea/
+
+# Logs
+*.log
+
+# Redundant nested folders (specific to your accidental structure)
 frontend/frontend/
 frontend/frontend/frontend/
