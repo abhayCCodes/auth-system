@@ -16,6 +16,8 @@ function AuthPage() {
       toast.error("❌ Please enter your Email or Mobile number.");
       return;
     }
+    
+    console.log("✅ baseURL in env:", baseURL);        //Debug log   
 
     try {
       await axios.post(`${baseURL}/api/auth/send-otp`, {
