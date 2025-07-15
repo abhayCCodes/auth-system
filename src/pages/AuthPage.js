@@ -14,6 +14,7 @@ function AuthPage() {
     e.preventDefault();
     
     console.log("📧 Email before sending OTP:", email);
+    console.log("📦 Sending to backend:", { email });
 
     if (!emailOrMobile.trim()) {
       toast.error("❌ Please enter your Email or Mobile number.");
