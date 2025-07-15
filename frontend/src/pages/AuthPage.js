@@ -12,6 +12,9 @@ function AuthPage() {
   console.log("✅ REACT_APP_API_BASE_URL:", process.env.REACT_APP_API_BASE_URL);  //onsole Log to Debug
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    console.log("📧 Email before sending OTP:", email);
+    console.log("📦 Sending to backend:", { email });
 
     if (!emailOrMobile.trim()) {
       toast.error("❌ Please enter your Email or Mobile number.");
@@ -22,9 +25,10 @@ function AuthPage() {
 
     try {
       await axios.post(`${baseURL}/api/auth/send-otp`, {
-
-        identifier: emailOrMobile, // ✅ important: backend expects 'identifier'
+        email: emailOrMobile.trim(),
       });
+
+    
       localStorage.setItem("emailOrMobile", emailOrMobile);
       toast.success("📤 OTP sent successfully!");
       navigate("/otp");

@@ -17,7 +17,7 @@ function ForgotPasswordPage() {
     }
 
     try {
-      await axios.post("http://localhost:5000/api/auth/reset-password", {
+      await axios.post("http://auth-backend-a9xg.onrender.com/api/auth/reset-password", {
         emailOrMobile: input,
         newPassword,
       });

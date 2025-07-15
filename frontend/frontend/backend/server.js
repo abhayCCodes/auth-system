@@ -20,11 +20,32 @@ console.log('[ENV] SMTP Config:', {
 });
 
 // Middleware 
-app.use(helmet());
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://auth-frontend.vercel.app', // main production domain
+  // Allow all Vercel preview deployments dynamically
+  /^https:\/\/auth-frontend(-[a-z0-9]+)?(-abhay-chauhans-projects-[a-z0-9]+)?\.vercel\.app$/,
+];
+
 app.use(cors({
-  origin: 'https://auth-frontend-psi-livid.vercel.app',
-  credentials: true
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // Allow server-to-server calls
+    if (allowedOrigins.some(allowed => {
+      if (typeof allowed === 'string') return origin === allowed;
+      if (allowed instanceof RegExp) return allowed.test(origin);
+      return false;
+    })) {
+      return callback(null, true);
+    }
+    console.error(`🚨 CORS Blocked: ${origin}`); // Log blocked requests
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true, // Required for cookies/auth headers
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Explicitly allow OPTIONS
 }));
+
+// Handle preflight requests explicitly
+app.options('*', cors()); // Allow OPTIONS on all routes
 
 app.use(morgan('dev'));
 
