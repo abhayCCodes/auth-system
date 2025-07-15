@@ -20,11 +20,25 @@ console.log('[ENV] SMTP Config:', {
 });
 
 // Middleware 
-app.use(helmet());
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://auth-frontend-psi-livid.vercel.app',
+  'https://auth-frontend-git-main-abhay-chauhans-projects-469421e1.vercel.app',
+  'https://auth-frontend.vercel.app'
+];
+
 app.use(cors({
-  origin: 'https://auth-frontend-psi-livid.vercel.app',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`Not allowed by CORS: ${origin}`));
+  },
   credentials: true
 }));
+
 
 app.use(morgan('dev'));
 
