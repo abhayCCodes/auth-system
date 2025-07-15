@@ -38,16 +38,16 @@ const sendEmailOTP = async (email, otp) => {
 // Send OTP Controller
 const sendOTP = async (req, res) => {
   try {
-    const { identifier } = req.body;
+    const { email } = req.body;
     
-    if (!identifier) {
+    if (!email) {
       return res.status(400).json({ error: "Email or mobile required" });
     }
 
     const otp = generateOTP();
     const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
 
-    await Otp.create({ identifier, otp, expiresAt });
+    await Otp.create({ email, otp, expiresAt });
 
     if (validator.isEmail(identifier)) {
       await sendEmailOTP(identifier, otp);
