@@ -18,7 +18,7 @@ function LoginPage() {
     }
 
     try {
-      const res = await axios.post("https://auth-backend-a9xg.onrender.com/api/auth/login", {
+      const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/auth/login`, {
         email,
         password,
       });

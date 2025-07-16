@@ -19,7 +19,7 @@ function OTPPage() {
 
     setLoading(true);
     try {
-      const res = await axios.post("http://auth-backend-a9xg.onrender.com/api/auth/verify-otp", {
+      const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/auth/verify-otp`, {
         email,
         otp,
       });

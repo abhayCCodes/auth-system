@@ -22,7 +22,7 @@ function ForgotPasswordPage() {
     }
 
     try {
-      await axios.post("https://auth-backend-a9xg.onrender.com/api/auth/reset-password", {
+      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/auth/reset-password`, {
         email,
         newPassword,
       });
