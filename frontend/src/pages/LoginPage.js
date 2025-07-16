@@ -6,20 +6,28 @@ import { toast } from "react-toastify";
 function LoginPage() {
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
-  const emailOrMobile = localStorage.getItem("emailOrMobile");
+  const email = localStorage.getItem("email"); // ✅ now using clean 'email' key
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
+    if (!email) {
+      toast.error("❌ Email not found. Please go back and request OTP again.");
+      navigate("/");
+      return;
+    }
+
     try {
-      const res = await axios.post("http://auth-backend-a9xg.onrender.com/api/auth/login", {
-        emailOrMobile,
+      const res = await axios.post("https://auth-backend-a9xg.onrender.com/api/auth/login", {
+        email,
         password,
       });
+
       toast.success(res.data.message);
       localStorage.setItem("userName", res.data.user.name);
       navigate("/home");
     } catch (err) {
-      toast.error("Incorrect password. Please try again.");
+      toast.error("❌ Incorrect password. Please try again.");
     }
   };
 
