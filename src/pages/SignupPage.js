@@ -9,7 +9,7 @@ function SignupPage() {
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const emailOrMobile = localStorage.getItem("emailOrMobile");
+  const emailOrMobile = localStorage.getItem("email");
 
   const isStrong =
     password.length >= 8 && /[A-Z]/.test(password) && /\d/.test(password);
@@ -26,7 +26,7 @@ function SignupPage() {
     try {
       const res = await axios.post("http://auth-backend-a9xg.onrender.com/api/auth/signup", {
         name,
-        emailOrMobile,
+        email,
         password,
       });
 

@@ -7,7 +7,7 @@ function OTPPage() {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const emailOrMobile = localStorage.getItem("emailOrMobile");
+  const email = localStorage.getItem("email");
 
   const handleVerify = async (e) => {
     e.preventDefault();
@@ -20,7 +20,7 @@ function OTPPage() {
     setLoading(true);
     try {
       const res = await axios.post("http://auth-backend-a9xg.onrender.com/api/auth/verify-otp", {
-        emailOrMobile,
+        email,
         otp,
       });
 

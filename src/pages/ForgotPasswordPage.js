@@ -4,27 +4,32 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 function ForgotPasswordPage() {
-  const [input, setInput] = useState("");
+  const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [show, setShow] = useState(false);
   const navigate = useNavigate();
 
   const handleReset = async (e) => {
     e.preventDefault();
+    if (!email.includes("@")) {
+      toast.error("❌ Please enter a valid email address.");
+      return;
+    }
+
     if (newPassword.length < 8) {
-      toast.error("Password must be at least 8 characters long");
+      toast.error("❌ Password must be at least 8 characters long");
       return;
     }
 
     try {
-      await axios.post("http://auth-backend-a9xg.onrender.com/api/auth/reset-password", {
-        emailOrMobile: input,
+      await axios.post("https://auth-backend-a9xg.onrender.com/api/auth/reset-password", {
+        email,
         newPassword,
       });
-      toast.success("Password reset successfully!");
+      toast.success("✅ Password reset successfully!");
       navigate("/login");
     } catch (err) {
-      toast.error("Failed to reset password");
+      toast.error("❌ Failed to reset password");
     }
   };
 
@@ -36,10 +41,10 @@ function ForgotPasswordPage() {
         </h2>
         <form onSubmit={handleReset}>
           <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Enter Email or Mobile"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email"
             className="border rounded-lg p-3 w-full mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
             required
           />
