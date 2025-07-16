@@ -1,81 +1,68 @@
 const getTransporter = require("../utils/mailTransporter");
 const Otp = require("../models/Otp");
 const User = require("../models/User");
-const nodemailer = require("nodemailer");
 const validator = require("validator");
 const crypto = require("crypto");
 
-// Constants
 const OTP_EXPIRY_MINUTES = 5;
 
-// Generate cryptographically secure OTP
+// Generate a secure OTP
 const generateOTP = () => crypto.randomInt(100000, 999999).toString();
 
-
-// Send OTP Email
+// Send OTP to Email
 const sendEmailOTP = async (email, otp) => {
-  try {
-    const transporter = await getTransporter();
-    await transporter.sendMail({
-      from: process.env.EMAIL_FROM,
-      to: email,
-      subject: "Your Secure OTP Code",
-      html: `
-        <div style="font-family: Arial, sans-serif;">
-          <h2>OTP Verification</h2>
-          <p>Your OTP code is: <strong>${otp}</strong></p>
-          <p>Valid for ${OTP_EXPIRY_MINUTES} minutes.</p>
-          <p><em>Do not share this code.</em></p>
-        </div>
-      `,
-    });
-  } catch (error) {
-    console.error("Failed to send email:", error);
-    throw new Error("Email delivery failed");
-  }
+  const transporter = await getTransporter();
+  await transporter.sendMail({
+    from: process.env.EMAIL_FROM,
+    to: email,
+    subject: "Your Secure OTP Code",
+    html: `
+      <div style="font-family: Arial, sans-serif;">
+        <h2>OTP Verification</h2>
+        <p>Your OTP code is: <strong>${otp}</strong></p>
+        <p>Valid for ${OTP_EXPIRY_MINUTES} minutes.</p>
+        <p><em>Do not share this code.</em></p>
+      </div>
+    `,
+  });
 };
 
-// Send OTP Controller
+// ✅ Send OTP Controller
 const sendOTP = async (req, res) => {
   try {
     const { email } = req.body;
-    
-    if (!email) {
-      return res.status(400).json({ error: "Email or mobile required" });
+
+    if (!email || !validator.isEmail(email)) {
+      return res.status(400).json({ error: "Invalid email format" });
     }
 
     const otp = generateOTP();
     const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
 
     await Otp.create({ email, otp, expiresAt });
+    await sendEmailOTP(email, otp);
 
-    if (validator.isEmail(identifier)) {
-      await sendEmailOTP(identifier, otp);
-      return res.json({ success: true, message: "OTP sent to email" });
-    } else {
-      console.log(`OTP for ${identifier}: ${otp}`);
-      return res.json({ 
-        success: true, 
-        message: "OTP generated (configure SMS for production)",
-        ...(process.env.NODE_ENV === "development" && { otp }), // Dev-only
-      });
-    }
+    return res.json({ success: true, message: "OTP sent to email" });
   } catch (error) {
     console.error("Send OTP error:", error.message);
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to process OTP request",
       ...(process.env.NODE_ENV === "development" && { details: error.message }),
     });
   }
 };
 
-// Verify OTP Controller
+// ✅ Verify OTP Controller
 const verifyOTP = async (req, res) => {
   try {
-    const { identifier, otp } = req.body;
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ error: "Email and OTP are required" });
+    }
 
     const validOtp = await Otp.findOne({
-      identifier,
+      email,
       otp,
       expiresAt: { $gt: new Date() },
     });
@@ -84,20 +71,18 @@ const verifyOTP = async (req, res) => {
       return res.status(400).json({ error: "Invalid or expired OTP" });
     }
 
-    await Otp.deleteMany({ identifier });
+    await Otp.deleteMany({ email });
 
-    const userExists = await User.exists({
-      $or: [{ email: identifier }, { mobile: identifier }],
-    });
+    const userExists = await User.exists({ email });
 
-    return res.json({ 
+    return res.json({
       success: true,
       isRegistered: userExists,
       message: userExists ? "User verified" : "New user",
     });
   } catch (error) {
     console.error("Verify OTP error:", error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Server error during verification",
       ...(process.env.NODE_ENV === "development" && { details: error.stack }),
     });
@@ -106,13 +91,13 @@ const verifyOTP = async (req, res) => {
 
 module.exports = { sendOTP, verifyOTP };
 
-// Optional: Test SMTP on startup in development
+// (Optional) Test SMTP on dev start
 if (process.env.NODE_ENV === "development") {
   (async () => {
     try {
       await getTransporter();
-    } catch (error) {
-      console.error("SMTP initialization failed. Check your .env config!");
+    } catch (err) {
+      console.error("SMTP failed. Check your .env email config.");
     }
   })();
 }

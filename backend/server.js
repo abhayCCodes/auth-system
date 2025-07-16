@@ -1,4 +1,4 @@
-require('dotenv').config({ path: __dirname + '/.env' }); // Absolute path to .env
+require('dotenv').config({ path: __dirname + '/.env' }); // Load .env from backend root
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -12,48 +12,48 @@ const otpRoutes = require('./routes/otpRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Debug SMTP config
+// ✅ SMTP Debug Log
 console.log('[ENV] SMTP Config:', {
   host: process.env.EMAIL_HOST || 'MISSING',
   port: process.env.EMAIL_PORT || 'MISSING',
   user: process.env.EMAIL_USER ? '*****' : 'MISSING'
 });
 
-// ✅ Define Allowed Origins (Vercel, localhost, preview deployments)
+// ✅ Allowed Origins for CORS (Vercel, local, previews)
 const allowedOrigins = [
   'http://localhost:3000',
   'https://auth-frontend.vercel.app',
   /^https:\/\/auth-frontend(-[a-z0-9]+)?(-abhay-chauhans-projects-[a-z0-9]+)?\.vercel\.app$/,
 ];
 
-// ✅ Centralized CORS config
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // Allow server-to-server
-    if (allowedOrigins.some(allowed => {
-      if (typeof allowed === 'string') return origin === allowed;
-      if (allowed instanceof RegExp) return allowed.test(origin);
-      return false;
-    })) {
+    if (!origin) return callback(null, true);
+    if (
+      allowedOrigins.some(allowed =>
+        typeof allowed === 'string'
+          ? origin === allowed
+          : allowed instanceof RegExp && allowed.test(origin)
+      )
+    ) {
       return callback(null, true);
     }
-    console.error(`🚨 CORS Blocked: ${origin}`);
+    console.error(`🚫 CORS Blocked: ${origin}`);
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 };
 
-// ✅ Apply CORS globally + preflight handling
+// ✅ Global Middleware
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Important for preflight requests
-
-// ✅ Middlewares
+app.options('*', cors(corsOptions)); // Handle preflight
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(helmet());
 
-// ✅ Fix raw JSON from tools like curl/PowerShell
+// ✅ Handle raw JSON in curl/Powershell (just in case)
 app.use((req, res, next) => {
   if (
     req.headers['content-type'] === 'application/json' &&
@@ -75,10 +75,10 @@ app.use((req, res, next) => {
 });
 
 // ✅ Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/otp", otpRoutes);
+app.use("/api/auth", authRoutes);  // login, register, reset-password
+app.use("/api/otp", otpRoutes);    // send-otp, verify-otp
 
-// ✅ DB + SMTP Verification
+// ✅ Connect DB + Verify SMTP once
 connectDB().then(() => {
   if (process.env.EMAIL_HOST) {
     const transporter = nodemailer.createTransport({
@@ -89,10 +89,10 @@ connectDB().then(() => {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
       },
-      tls: { rejectUnauthorized: false } // For testing only
+      tls: { rejectUnauthorized: false } // For dev only
     });
 
-    transporter.verify(function(error, success) {
+    transporter.verify((error, success) => {
       if (error) {
         console.error('❌ SMTP Connection Failed:', {
           code: error.code,
@@ -106,7 +106,7 @@ connectDB().then(() => {
   }
 });
 
-// ✅ Start Server
+// ✅ Start Express Server
 app.listen(PORT, () => {
   console.log(`\n🚀 Server running in ${process.env.NODE_ENV || 'development'} mode`);
   console.log(`🔗 http://localhost:${PORT}`);
