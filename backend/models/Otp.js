@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 
 const otpSchema = new mongoose.Schema({
-  identifier: {
-    type: String, // can be email or mobile
+  email: {
+    type: String, 
     required: true,
   },
   otp: {
