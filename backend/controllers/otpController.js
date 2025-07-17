@@ -1,11 +1,6 @@
-// --- Node.js Built-in Imports ---
 const crypto = require("crypto");
 const { format } = require("date-fns"); // For more robust date formatting if needed (example)
-
-// --- Third-Party Imports ---
 const validator = require("validator"); // For email validation
-
-// --- Local Module Imports ---
 const getTransporter = require("../utils/mailTransporter"); // SMTP transporter setup
 const Otp = require("../models/Otp"); // Mongoose model for OTPs
 const User = require("../models/User"); // Mongoose model for Users
@@ -43,13 +38,12 @@ const sendEmailOTP = async (email, otp) => {
 const sendOTP = async (req, res) => {
     try {
         const { email } = req.body;
-
+        console.log("📧 Email before sending OTP:", email);
         if (!email || !validator.isEmail(email)) {
             return res.status(400).json({ error: "Invalid email format" });
         }
 
         const otp = generateOTP();
-        // Calculate expiry time in milliseconds from now
         const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
 
         // Save OTP to database (overwrite existing ones for this email for security)
