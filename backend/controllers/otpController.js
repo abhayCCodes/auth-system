@@ -53,40 +53,69 @@ const sendOTP = async (req, res) => {
 };
 
 // ✅ Verify OTP Controller
-const verifyOTP = async (req, res) => {
-  try {
-    const { email, otp } = req.body;
 
-    if (!email || !otp) {
-      return res.status(400).json({ error: "Email and OTP are required" });
-    }
+const verifyOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    console.log("--- START VERIFY OTP ---");
+    console.log("Received for verification - Email:", email, "OTP:", otp);
+
+    if (!email || !otp) {
+        console.log("Error: Email or OTP missing in request body.");
+      return res.status(400).json({ error: "Email and OTP are required" });
+    }
+
+    // Log the current time for expiry comparison reference
+    const currentTime = new Date();
+    console.log("Current server time:", currentTime.toISOString()); // ISO string is good for debugging
 
     const validOtp = await Otp.findOne({
-      email,
-      otp,
-      expiresAt: { $gt: new Date() },
-    });
+      email,
+      otp,
+      expiresAt: { $gt: currentTime }, // Use the logged currentTime
+    });
 
-    if (!validOtp) {
-      return res.status(400).json({ error: "Invalid or expired OTP" });
-    }
+    if (!validOtp) {
+        // This is the critical log for the 400 error!
+        console.log("OTP verification failed for:", email);
+        // Try to find the OTP without the expiry check to see if it just expired or was wrong
+        const foundOtpButMaybeExpired = await Otp.findOne({ email, otp });
+        if (foundOtpButMaybeExpired) {
+            console.log("OTP found but likely expired. Stored Expiry:", foundOtpButMaybeExpired.expiresAt.toISOString());
+        } else {
+            console.log("No matching OTP record found for email or OTP itself is incorrect.");
+            // Further debug: Check if *any* OTP for this email exists at all
+            const anyOtpForEmail = await Otp.findOne({ email });
+            if (anyOtpForEmail) {
+                console.log("An OTP exists for this email, but the provided OTP does not match:", anyOtpForEmail.otp);
+            } else {
+                console.log("No OTP record found for this email at all.");
+            }
+        }
+      return res.status(400).json({ error: "Invalid or expired OTP" });
+    }
 
-    await Otp.deleteMany({ email });
+    // If we reach here, it's a success
+    console.log("OTP successfully validated for email:", email);
+    console.log("Deleting OTP records for email:", email);
+    await Otp.deleteMany({ email }); // Delete all OTPs for this email for security/cleanup
 
-    const userExists = await User.exists({ email });
+    const userExists = await User.exists({ email });
+    console.log("Checking user existence for email:", email, ". User exists:", userExists);
 
-    return res.json({
-      success: true,
-      isRegistered: userExists,
-      message: userExists ? "User verified" : "New user",
-    });
-  } catch (error) {
-    console.error("Verify OTP error:", error);
-    return res.status(500).json({
-      error: "Server error during verification",
-      ...(process.env.NODE_ENV === "development" && { details: error.stack }),
-    });
-  }
+    return res.json({
+      success: true,
+      isRegistered: userExists, // Renamed from 'userExists' to 'isRegistered' for clarity in frontend
+      message: userExists ? "User verified" : "New user",
+    });
+  } catch (error) {
+    console.error("Verify OTP error - CATCH BLOCK:", error);
+    return res.status(500).json({
+      error: "Server error during verification",
+      ...(process.env.NODE_ENV === "development" && { details: error.stack }),
+    });
+  }
 };
 
 module.exports = { sendOTP, verifyOTP };
