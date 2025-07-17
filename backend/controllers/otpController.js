@@ -10,7 +10,7 @@ const getTransporter = require("../utils/mailTransporter"); // SMTP transporter 
 const Otp = require("../models/Otp"); // Mongoose model for OTPs
 const User = require("../models/User"); // Mongoose model for Users
 
-const OTP_EXPIRY_MINUTES = 5; // How long an OTP is valid
+const OTP_EXPIRY_MINUTES = 15; // How long an OTP is valid
 
 const generateOTP = () => crypto.randomInt(100000, 999999).toString();
 
