@@ -23,6 +23,7 @@ console.log('[ENV] SMTP Config:', {
 const allowedOrigins = [
   'http://localhost:3000',
   'https://auth-frontend.vercel.app',
+  'https://auth-frontend-psi-livid.vercel.app',
   /^https:\/\/auth-frontend(-[a-z0-9]+)?(-abhay-chauhans-projects-[a-z0-9]+)?\.vercel\.app$/,
 ];
 
