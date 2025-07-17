@@ -47,13 +47,26 @@ const sendOTP = async (req, res) => {
         const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
 
         // Save OTP to database (overwrite existing ones for this email for security)
-        await Otp.findOneAndUpdate(
-            { email }, 
-            { otp, expiresAt }, 
-            { upsert: true, new: true, setDefaultsOnInsert: true } 
-        );
-        console.log(`[sendOTP] OTP saved to DB for ${email}. OTP: ${otp}`); // For debugging only, remove OTP from logs in production!
+    try {
+  const savedOtpDoc = await Otp.findOneAndUpdate(
+    { email },
+    { otp, expiresAt },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
 
+  if (!savedOtpDoc) {
+    console.error(`[sendOTP] ❌ OTP not saved for: ${email}`);
+    return res.status(500).json({ error: "OTP could not be saved" });
+  }
+
+  console.log(`[sendOTP] ✅ OTP saved to DB for ${email}. OTP: ${otp}`);
+} catch (dbError) {
+  console.error(`[sendOTP] ❌ DB error for ${email}:`, dbError);
+  return res.status(500).json({ error: "DB error while saving OTP" });
+}   
+
+        
+        
         // Send the email
         await sendEmailOTP(email, otp);
 
