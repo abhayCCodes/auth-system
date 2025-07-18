@@ -69,6 +69,8 @@ const verifyOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
 
+    console.log("📩 Received in verifyOTP:", { email, otp });
+
     if (!email || !otp) {
       return res.status(400).json({ error: "Email and OTP are required" });
     }
