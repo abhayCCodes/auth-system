@@ -8,8 +8,6 @@ const { generateOTP, verifyOTP } = require("../utils/otpStore");
 
 const OTP_EXPIRY_MINUTES = 15; // How long an OTP is valid
 
-const generateOTP = () => crypto.randomInt(100000, 999999).toString();
-
 const sendEmailOTP = async (email, otp) => {
     try {
         const transporter = await getTransporter();
