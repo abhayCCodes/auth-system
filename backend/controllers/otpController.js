@@ -4,6 +4,7 @@ const validator = require("validator"); // For email validation
 const getTransporter = require("../utils/mailTransporter"); // SMTP transporter setup
 const Otp = require("../models/Otp"); // Mongoose model for OTPs
 const User = require("../models/User"); // Mongoose model for Users
+const { generateOTP, verifyOTP } = require("../utils/otpStore");
 
 const OTP_EXPIRY_MINUTES = 15; // How long an OTP is valid
 
@@ -63,10 +64,7 @@ const sendOTP = async (req, res) => {
 } catch (dbError) {
   console.error(`[sendOTP] ❌ DB error for ${email}:`, dbError);
   return res.status(500).json({ error: "DB error while saving OTP" });
-}   
-
-        
-        
+}         
         // Send the email
         await sendEmailOTP(email, otp);
 
