@@ -31,7 +31,7 @@ const sendOTP = async (req, res) => {
       { upsert: true, new: true }
     );
 
-    const transporter = getTransporter();
+    const transporter = await getTransporter();
     
     // ✅ SMTP Connection Test
     transporter.verify(function (error, success) {
