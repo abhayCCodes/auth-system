@@ -1,44 +1,6 @@
-const getTransporter = require("../utils/mailTransporter");
+
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
-const { generateOTP, verifyOTP } = require("../utils/otpStore");
-
-// ✅ Send OTP to Email only
-const sendOTP = async (req, res) => {
-  const { email } = req.body;
-
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return res.status(400).json({ error: "Invalid email format" });
-  }
-
-  try {
-    const otp = generateOTP(email);
-
-    const transporter = await getTransporter();
-
-    await transporter.sendMail({
-      from: process.env.EMAIL_FROM,
-      to: email,
-      subject: "Your OTP Code",
-      html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px;">
-          <h2>OTP Verification</h2>
-          <p>Your verification code is: <strong>${otp}</strong></p>
-          <p>Valid for 5 minutes.</p>
-          <p style="color: #888;">Do not share this code with anyone.</p>
-        </div>
-      `,
-    });
-
-    res.status(200).json({ success: true, message: "OTP sent to email" });
-  } catch (err) {
-    console.error("Email Send Error:", err);
-    res.status(500).json({
-      error: "Failed to send OTP",
-      details: process.env.NODE_ENV === "development" ? err.message : null,
-    });
-  }
-};
 
 // ✅ Register user
 const registerUser = async (req, res) => {
@@ -108,7 +70,6 @@ const resetPassword = async (req, res) => {
 };
 
 module.exports = {
-  sendOTP,
   registerUser,
   login,
   resetPassword,
