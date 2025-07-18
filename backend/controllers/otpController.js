@@ -32,7 +32,7 @@ const sendOTP = async (req, res) => {
     );
 
     const transporter = getTransporter();
-
+    
     // ✅ SMTP Connection Test
     transporter.verify(function (error, success) {
       if (error) {
