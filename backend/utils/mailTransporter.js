@@ -1,3 +1,4 @@
+//auth-system\backend\utils\mailTransporter.js
 const nodemailer = require("nodemailer");
 
 let transporter;

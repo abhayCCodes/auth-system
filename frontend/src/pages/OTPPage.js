@@ -1,3 +1,4 @@
+//auth-system\frontend\src\pages\OTPPage.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -10,33 +11,49 @@ function OTPPage() {
   const email = localStorage.getItem("email");
 
   const handleVerify = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!otp.trim()) {
-      toast.error("❌ Please enter the OTP.");
-      return;
+  if (!otp.trim()) {
+    toast.error("❌ Please enter the OTP.");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const payload = {
+      email: email.trim(),
+      otp: otp.trim(),
+    };
+
+    const headers = {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+
+    console.log("🔍 Verifying OTP:", payload);
+
+    const res = await axios.post(
+      `${process.env.REACT_APP_API_BASE_URL}/api/otp/verify-otp`,
+      payload,
+      headers
+    );
+
+    toast.success("✅ OTP verified successfully!");
+
+    if (res.data.userExists) {
+      navigate("/login");
+    } else {
+      navigate("/signup");
     }
-
-    setLoading(true);
-    try {
-      const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/auth/verify-otp`, {
-        email,
-        otp,
-      });
-
-      toast.success("✅ OTP verified successfully!");
-
-      if (res.data.userExists) {
-        navigate("/login");
-      } else {
-        navigate("/signup");
-      }
-    } catch (err) {
-      toast.error("❌ Invalid or expired OTP. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch (err) {
+    console.error("OTP verification error:", err.response?.data || err.message);
+    toast.error("❌ Invalid or expired OTP. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
