@@ -22,7 +22,7 @@ function AuthPage() {
     }
 
     try {
-      await axios.post(`${baseURL}/api/auth/send-otp`, {
+      await axios.post(`${baseURL}/api/otp/send-otp`, {
         email: email.trim(),
       });
 
