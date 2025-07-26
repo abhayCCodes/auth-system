@@ -45,6 +45,7 @@ function OTPPage() {
     if (res.data.userExists) {
       navigate("/login");
     } else {
+      localStorage.setItem("verifiedEmail", payload.email);
       navigate("/signup");
     }
   } catch (err) {

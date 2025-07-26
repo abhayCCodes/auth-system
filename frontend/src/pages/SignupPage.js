@@ -9,7 +9,7 @@ function SignupPage() {
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const emailOrMobile = localStorage.getItem("email");
+  const email = localStorage.getItem("verifiedemail");
 
   const isStrong =
     password.length >= 8 && /[A-Z]/.test(password) && /\d/.test(password);
