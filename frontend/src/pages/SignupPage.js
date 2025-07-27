@@ -9,7 +9,7 @@ function SignupPage() {
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const email = localStorage.getItem("verifiedemail");
+  const email = localStorage.getItem("verifiedemail"); // Verified email from OTP step
 
   const isStrong =
     password.length >= 8 && /[A-Z]/.test(password) && /\d/.test(password);
@@ -24,11 +24,10 @@ function SignupPage() {
 
     setLoading(true);
     try {
-      const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/auth/signup`, {
-        name,
-        email,
-        password,
-      });
+      const res = await axios.post(
+        `${process.env.REACT_APP_API_BASE_URL}/api/auth/signup`,
+        { name, email, password }
+      );
 
       toast.success("✅ Account created successfully!");
       localStorage.setItem("userName", name);
@@ -47,6 +46,16 @@ function SignupPage() {
           Create Account
         </h2>
         <form onSubmit={handleSignup}>
+          <div className="mb-4">
+            <input
+              type="email"
+              value={email || ""}
+              readOnly
+              className="bg-gray-100 text-gray-700 border border-gray-300 rounded-md p-3 w-full text-lg focus:outline-none cursor-not-allowed"
+              placeholder="Verified Email"
+            />
+          </div>
+
           <input
             type="text"
             value={name}
@@ -55,6 +64,7 @@ function SignupPage() {
             className="border border-gray-300 rounded-md p-3 w-full mb-4 text-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             required
           />
+
           <div className="relative mb-2">
             <input
               type={show ? "text" : "password"}
@@ -72,11 +82,13 @@ function SignupPage() {
               {show ? "Hide" : "Show"}
             </button>
           </div>
+
           {!isStrong && password.length > 0 && (
             <p className="text-sm text-red-500 mb-2">
               Use 8+ chars, 1 uppercase & 1 number
             </p>
           )}
+
           <button
             type="submit"
             disabled={loading}
