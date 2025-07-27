@@ -1,109 +1,97 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-function SignupPage() {
+const SignupPage = () => {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
-  const [show, setShow] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const email = localStorage.getItem("verifiedemail"); // Verified email from OTP step
 
-  const isStrong =
-    password.length >= 8 && /[A-Z]/.test(password) && /\d/.test(password);
+  // Get verified email from localStorage on mount
+  useEffect(() => {
+    const storedEmail = localStorage.getItem("verifiedEmail");
+    if (storedEmail) {
+      setEmail(storedEmail);
+    } else {
+      toast.error("❌ No verified email found. Please verify email first.");
+      navigate("/auth");
+    }
+  }, [navigate]);
 
   const handleSignup = async (e) => {
     e.preventDefault();
-
-    if (!isStrong) {
-      toast.error("❌ Password must be 8+ chars with 1 uppercase & 1 number.");
-      return;
-    }
-
-    setLoading(true);
     try {
-      const res = await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/auth/signup`,
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/auth/signup`,
         { name, email, password }
       );
-
-      toast.success("✅ Account created successfully!");
-      localStorage.setItem("userName", name);
-      navigate("/home");
-    } catch (err) {
-      toast.error("❌ Signup failed. Try again.");
-    } finally {
-      setLoading(false);
+      toast.success("🎉 Signup successful! You can now log in.");
+      navigate("/login");
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Signup failed. Try again."
+      );
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+      <form
+        onSubmit={handleSignup}
+        className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md space-y-4"
+      >
+        <h2 className="text-2xl font-bold text-center text-gray-800">
           Create Account
         </h2>
-        <form onSubmit={handleSignup}>
-          <div className="mb-4">
-            <input
-              type="email"
-              value={email || ""}
-              readOnly
-              className="bg-gray-100 text-gray-700 border border-gray-300 rounded-md p-3 w-full text-lg focus:outline-none cursor-not-allowed"
-              placeholder="Verified Email"
-            />
-          </div>
 
+        {/* ✅ Show verified email in a disabled input */}
+        <div>
+          <label className="block mb-1 text-gray-600 font-medium">
+            Verified Email
+          </label>
+          <input
+            type="email"
+            value={email}
+            disabled
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
+          />
+        </div>
+
+        <div>
+          <label className="block mb-1 text-gray-600 font-medium">Name</label>
           <input
             type="text"
+            placeholder="Enter your name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Full Name"
-            className="border border-gray-300 rounded-md p-3 w-full mb-4 text-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
             required
           />
+        </div>
 
-          <div className="relative mb-2">
-            <input
-              type={show ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              className="border border-gray-300 rounded-md p-3 w-full text-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShow(!show)}
-              className="absolute top-3 right-3 text-sm text-gray-600"
-            >
-              {show ? "Hide" : "Show"}
-            </button>
-          </div>
+        <div>
+          <label className="block mb-1 text-gray-600 font-medium">Password</label>
+          <input
+            type="password"
+            placeholder="Create a strong password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            required
+          />
+        </div>
 
-          {!isStrong && password.length > 0 && (
-            <p className="text-sm text-red-500 mb-2">
-              Use 8+ chars, 1 uppercase & 1 number
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className={`${
-              loading
-                ? "bg-blue-300 cursor-not-allowed"
-                : "bg-blue-500 hover:bg-blue-600"
-            } text-white font-semibold py-3 px-4 rounded-md w-full transition duration-200`}
-          >
-            {loading ? "Creating..." : "Sign Up"}
-          </button>
-        </form>
-      </div>
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition"
+        >
+          Sign Up
+        </button>
+      </form>
     </div>
   );
-}
+};
 
 export default SignupPage;
