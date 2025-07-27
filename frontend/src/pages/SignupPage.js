@@ -1,91 +1,88 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { toast } from "react-toastify";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const SignupPage = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
 
-  // Get verified email from localStorage on mount
+  // ✅ Get verified email from localStorage
   useEffect(() => {
-    const storedEmail = localStorage.getItem("verifiedEmail");
-    if (storedEmail) {
-      setEmail(storedEmail);
+    const verifiedEmail = localStorage.getItem('verifiedEmail');
+    if (verifiedEmail) {
+      setEmail(verifiedEmail);
     } else {
-      toast.error("❌ No verified email found. Please verify email first.");
-      navigate("/auth");
+      toast.error('No verified email found. Please verify your email first.');
+      navigate('/auth'); // Redirect to email verification
     }
   }, [navigate]);
 
   const handleSignup = async (e) => {
     e.preventDefault();
+
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/auth/signup`,
-        { name, email, password }
+      const res = await axios.post(
+        `${process.env.REACT_APP_API_BASE_URL}/api/auth/signup`,
+        { email, name, password }
       );
-      toast.success("🎉 Signup successful! You can now log in.");
-      navigate("/login");
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Signup failed. Try again."
-      );
+
+      toast.success('Signup successful! Please login.');
+      localStorage.removeItem('verifiedEmail');
+      navigate('/login');
+    } catch (err) {
+      console.error(err.response?.data || err.message);
+      toast.error(err.response?.data?.message || 'Signup failed');
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+    <div className="flex justify-center items-center min-h-screen bg-gray-50">
       <form
         onSubmit={handleSignup}
-        className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md space-y-4"
+        className="bg-white p-8 rounded-lg shadow-md w-full max-w-md"
       >
-        <h2 className="text-2xl font-bold text-center text-gray-800">
-          Create Account
-        </h2>
+        <h2 className="text-2xl font-bold mb-6 text-center">Create Account</h2>
 
-        {/* ✅ Show verified email in a disabled input */}
-        <div>
-          <label className="block mb-1 text-gray-600 font-medium">
-            Verified Email
-          </label>
+        <div className="mb-4">
+          <label className="block text-gray-700 mb-1">Verified Email</label>
           <input
             type="email"
             value={email}
-            disabled
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
+            readOnly
+            className="w-full px-4 py-2 border border-gray-300 rounded bg-gray-100 cursor-not-allowed"
           />
         </div>
 
-        <div>
-          <label className="block mb-1 text-gray-600 font-medium">Name</label>
+        <div className="mb-4">
+          <label className="block text-gray-700 mb-1">Full Name</label>
           <input
             type="text"
-            placeholder="Enter your name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            placeholder="Your Name"
+            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
         </div>
 
-        <div>
-          <label className="block mb-1 text-gray-600 font-medium">Password</label>
+        <div className="mb-6">
+          <label className="block text-gray-700 mb-1">Password</label>
           <input
             type="password"
-            placeholder="Create a strong password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            placeholder="Create a password"
+            className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
         </div>
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
         >
           Sign Up
         </button>
