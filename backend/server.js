@@ -79,6 +79,11 @@ app.use((req, res, next) => {
 app.use("/api/auth", authRoutes);  // login, register, reset-password
 app.use("/api/otp", otpRoutes);    // send-otp, verify-otp
 
+// ✅ Root route
+app.get('/', (req, res) => {
+  res.json({ message: 'Auth API is running', status: 'ok' });
+});
+
 // ✅ Connect DB + Verify SMTP once
 connectDB().then(() => {
   if (process.env.EMAIL_HOST) {
@@ -106,6 +111,7 @@ connectDB().then(() => {
     });
   }
 });
+
 
 // ✅ Start Express Server
 app.listen(PORT, '0.0.0.0', () => {
