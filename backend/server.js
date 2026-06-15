@@ -19,6 +19,7 @@ console.log('[ENV] Email Configuration:', {
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
+  'http://localhost:3002',
   'https://auth-frontend.vercel.app',
   'https://auth-frontend-psi-livid.vercel.app',
   /^https:\/\/auth-frontend(-[a-z0-9]+)?(-abhay-chauhans-projects-[a-z0-9]+)?\.vercel\.app$/,
