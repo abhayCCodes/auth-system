@@ -1,25 +1,12 @@
 const crypto = require("crypto");
 const { format } = require("date-fns"); 
 const validator = require("validator"); 
-const nodemailer = require("nodemailer"); // Changed from Resend utility to clean Nodemailer
+const axios = require("axios"); // 🚀 Simple, reliable, and breaks the loop!
 const Otp = require("../models/Otp"); 
 const User = require("../models/User"); 
 const mongoose = require("mongoose");
 
 const OTP_EXPIRY_MINUTES = 15; 
-
-// =================== CONFIGURE BREVO SMTP TRANSPORTER ===================
-const transporter = nodemailer.createTransport({
-  host: 'smtp-relay.brevo.com',
-  port: 465,
-  secure: true, 
-  auth: {
-    user: process.env.SENDER_EMAIL,   // chauhanroyal16@gmail.com
-    pass: process.env.BREVO_SMTP_KEY  // Your Brevo API Master Key
-  },
-  connectionTimeout: 10000,
-  greetinTimeout: 10000
-});
 
 // =========================== SEND OTP =============================
 const sendOTP = async (req, res) => {
@@ -51,28 +38,25 @@ const sendOTP = async (req, res) => {
     // 4. Database Operations
     console.log("\n=== DATABASE OPERATIONS ===");
     
-    // Delete old OTPs
     const deleteResult = await Otp.deleteMany({ email });
     console.log(`- Deleted ${deleteResult.deletedCount} old OTPs`);
 
-    // Save new OTP
     const newOtpDoc = new Otp({ email, otp, expiresAt });
     const savedOtp = await newOtpDoc.save();
 
-    // Immediate Verification
     const dbCheck = await Otp.findOne({ _id: savedOtp._id });
     if (!dbCheck) {
       throw new Error("OTP failed to persist in database");
     }
 
-    // 5. Email Sending via Brevo SMTP Relay
+    // 5. Direct HTTPS call to Brevo API via Axios
     console.log("\n=== EMAIL PROCESS ===");
     
-    const mailOptions = {
-      from: `"Secure Auth System" <${process.env.SENDER_EMAIL}>`,
-      to: email, // Sends dynamically to ANY email address entered by testers
+    const response = await axios.post('https://brevo.com', {
+      sender: { name: "Secure Auth System", email: process.env.SENDER_EMAIL },
+      to: [{ email: email }],
       subject: "🔐 Your OTP for Verification",
-      html: `
+      htmlContent: `
         <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
           <h2 style="color: #333; text-align: center;">Verification Code</h2>
           <p>Hello,</p>
@@ -83,11 +67,16 @@ const sendOTP = async (req, res) => {
           <p style="font-size: 12px; color: #666;">This code is valid for ${OTP_EXPIRY_MINUTES} minutes. If you did not request this, please ignore this email.</p>
         </div>
       `
-    };
+    }, {
+      headers: {
+        'api-key': process.env.BREVO_API_KEY,
+        'content-type': 'application/json',
+        'accept': 'application/json'
+      },
+      timeout: 5000
+    });
 
-    // Execute SMTP delivery
-    await transporter.sendMail(mailOptions);
-    console.log(`✅ OTP email sent successfully via Brevo to ${email}`);
+    console.log(`✅ OTP email sent successfully via Brevo. ID: ${response.data.messageId}`);
 
     // 6. Response
     res.status(200).json({
@@ -97,7 +86,7 @@ const sendOTP = async (req, res) => {
 
   } catch (error) {
     console.error("\n=== OPERATION FAILED ===");
-    console.error("Error:", error.message);
+    console.error("Error:", error.response ? JSON.stringify(error.response.data) : error.message);
     res.status(500).json({ error: "Failed to send OTP" });
   }
 };

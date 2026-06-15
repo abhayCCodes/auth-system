@@ -1,22 +1,25 @@
 // backend/utils/mailTransporter.js
-const { Resend } = require('resend');
-
-// Initialize Resend with your API key
-const resend = new Resend(process.env.RESEND_API_KEY);
+const axios = require('axios');
 
 const sendEmailViaApi = async (to, subject, htmlContent) => {
   try {
-    const data = await resend.emails.send({
-      from: process.env.RESEND_FROM || 'onboarding@resend.dev',
-      to: [to],
+    const response = await axios.post('https://brevo.com', {
+      sender: { name: "Auth System", email: process.env.SENDER_EMAIL },
+      to: [{ email: to }],
       subject: subject,
-      html: htmlContent,
+      htmlContent: htmlContent, // Brevo uses 'htmlContent' instead of 'html'
+    }, {
+      headers: {
+        'api-key': process.env.BREVO_API_KEY,
+        'content-type': 'application/json',
+        'accept': 'application/json'
+      }
     });
     
-    console.log("✅ Email sent successfully via Resend! ID:", data.id);
-    return data;
+    console.log("✅ Email sent successfully via Brevo! ID:", response.data.messageId);
+    return response.data;
   } catch (err) {
-    console.error("❌ Resend API failed:", err);
+    console.error("❌ Brevo API failed:", err.response ? err.response.data : err.message);
     throw new Error("Email delivery failed");
   }
 };
