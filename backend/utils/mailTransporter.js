@@ -1,33 +1,24 @@
-//auth-system\backend\utils\mailTransporter.js
-const nodemailer = require("nodemailer");
+// backend/utils/mailTransporter.js
+const { Resend } = require('resend');
 
-let transporter;
+// Initialize Resend with your API key
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-const getTransporter = async () => {
-  if (transporter) return transporter;
-
-  transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: parseInt(process.env.EMAIL_PORT),
-    secure: process.env.EMAIL_PORT === "465", // true for 465, false for 587
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-    tls: {
-      rejectUnauthorized: process.env.NODE_ENV === "production",
-    },
-  });
-
+const sendEmailViaApi = async (to, subject, htmlContent) => {
   try {
-    await transporter.verify();
-    console.log("✅ SMTP connection verified");
-    return transporter;
+    const data = await resend.emails.send({
+      from: process.env.RESEND_FROM || 'onboarding@resend.dev',
+      to: [to],
+      subject: subject,
+      html: htmlContent,
+    });
+    
+    console.log("✅ Email sent successfully via Resend! ID:", data.id);
+    return data;
   } catch (err) {
-    console.error("❌ SMTP verification failed:", err);
-    transporter = null;
-    throw new Error("SMTP connection failed");
+    console.error("❌ Resend API failed:", err);
+    throw new Error("Email delivery failed");
   }
 };
 
-module.exports = getTransporter;
+module.exports = sendEmailViaApi;
