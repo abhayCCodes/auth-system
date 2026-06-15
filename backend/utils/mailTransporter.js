@@ -3,11 +3,12 @@ const axios = require('axios');
 
 const sendEmailViaApi = async (to, subject, htmlContent) => {
   try {
+    
     const response = await axios.post('https://brevo.com', {
       sender: { name: "Auth System", email: process.env.SENDER_EMAIL },
       to: [{ email: to }],
       subject: subject,
-      htmlContent: htmlContent, // Brevo uses 'htmlContent' instead of 'html'
+      htmlContent: htmlContent, 
     }, {
       headers: {
         'api-key': process.env.BREVO_API_KEY,
