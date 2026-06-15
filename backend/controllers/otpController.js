@@ -11,12 +11,14 @@ const OTP_EXPIRY_MINUTES = 15;
 // =================== CONFIGURE BREVO SMTP TRANSPORTER ===================
 const transporter = nodemailer.createTransport({
   host: 'smtp-relay.brevo.com',
-  port: 587,
-  secure: false, 
+  port: 465,
+  secure: true, 
   auth: {
     user: process.env.SENDER_EMAIL,   // chauhanroyal16@gmail.com
     pass: process.env.BREVO_SMTP_KEY  // Your Brevo API Master Key
-  }
+  },
+  connectionTimeout: 10000,
+  greetinTimeout: 10000
 });
 
 // =========================== SEND OTP =============================
