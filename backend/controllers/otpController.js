@@ -52,7 +52,7 @@ const sendOTP = async (req, res) => {
     // 5. Direct HTTPS call to Brevo API via Axios
     console.log("\n=== EMAIL PROCESS ===");
     
-    const response = await axios.post('https://brevo.com/v3/smtp/email', {
+    const response = await axios.post('https://api.brevo.com/v3/smtp/email', {
       sender: { name: "Secure Auth System", email: process.env.SENDER_EMAIL },
       to: [{ email: email }],
       subject: "🔐 Your OTP for Verification",
