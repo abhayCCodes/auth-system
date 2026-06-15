@@ -1,12 +1,23 @@
 const crypto = require("crypto");
 const { format } = require("date-fns"); 
 const validator = require("validator"); 
-const sendEmailViaApi = require("../utils/mailTransporter"); // Import our new Resend function
+const nodemailer = require("nodemailer"); // Changed from Resend utility to clean Nodemailer
 const Otp = require("../models/Otp"); 
 const User = require("../models/User"); 
 const mongoose = require("mongoose");
 
 const OTP_EXPIRY_MINUTES = 15; 
+
+// =================== CONFIGURE BREVO SMTP TRANSPORTER ===================
+const transporter = nodemailer.createTransport({
+  host: 'smtp-relay.brevo.com',
+  port: 587,
+  secure: false, 
+  auth: {
+    user: process.env.SENDER_EMAIL,   // chauhanroyal16@gmail.com
+    pass: process.env.BREVO_SMTP_KEY  // Your Brevo API Master Key
+  }
+});
 
 // =========================== SEND OTP =============================
 const sendOTP = async (req, res) => {
@@ -52,13 +63,29 @@ const sendOTP = async (req, res) => {
       throw new Error("OTP failed to persist in database");
     }
 
-    // 5. Email Sending via Resend API
+    // 5. Email Sending via Brevo SMTP Relay
     console.log("\n=== EMAIL PROCESS ===");
-    const htmlContent = `<h3>Your OTP is: <strong>${otp}</strong></h3>
-                         <p>Expires in ${OTP_EXPIRY_MINUTES} minutes.</p>`;
+    
+    const mailOptions = {
+      from: `"Secure Auth System" <${process.env.SENDER_EMAIL}>`,
+      to: email, // Sends dynamically to ANY email address entered by testers
+      subject: "🔐 Your OTP for Verification",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+          <h2 style="color: #333; text-align: center;">Verification Code</h2>
+          <p>Hello,</p>
+          <p>Your security verification code is:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <span style="font-size: 32px; font-weight: bold; letter-spacing: 4px; color: #4F46E5; background-color: #F3F4F6; padding: 10px 20px; border-radius: 4px;">${otp}</span>
+          </div>
+          <p style="font-size: 12px; color: #666;">This code is valid for ${OTP_EXPIRY_MINUTES} minutes. If you did not request this, please ignore this email.</p>
+        </div>
+      `
+    };
 
-    // Calls Resend directly (Bypasses SMTP ports completely)
-    await sendEmailViaApi(email, "🔐 Your OTP for Verification", htmlContent);
+    // Execute SMTP delivery
+    await transporter.sendMail(mailOptions);
+    console.log(`✅ OTP email sent successfully via Brevo to ${email}`);
 
     // 6. Response
     res.status(200).json({
