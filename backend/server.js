@@ -10,10 +10,6 @@ const otpRoutes = require('./routes/otpRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ Clean Production Debug Log
-console.log('[ENV] Email Configuration:', {
-  service: process.env.RESEND_API_KEY ? 'Resend API (Active)' : 'MISSING RESEND_API_KEY'
-});
 
 // ✅ Allowed Origins for CORS (Vercel, local, previews)
 const allowedOrigins = [
